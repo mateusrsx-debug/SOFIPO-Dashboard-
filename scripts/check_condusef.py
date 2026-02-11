@@ -260,7 +260,7 @@ def main():
     else:
         print("\nNo new data. Everything up to date.")
 
-    return 1 if new_periods else 0
+    return 0
 
 
 if __name__ == "__main__":
