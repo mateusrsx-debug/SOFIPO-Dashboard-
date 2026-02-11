@@ -1,0 +1,38 @@
+name: Check CONDUSEF for new SOFIPO data
+
+on:
+  schedule:
+    - cron: '0 14 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-condusef:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run CONDUSEF monitor
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python scripts/check_condusef.py
+
+      - name: Commit updated state (if new data found)
+        run: |
+          git config user.name "CONDUSEF Bot"
+          git config user.email "bot@condusef-monitor.github.io"
+          git add scripts/last_known_date.json
+          git diff --staged --quiet || git commit -m "🔄 Update last known date after new CONDUSEF data"
+          git push || echo "Nothing to push"
